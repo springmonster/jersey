@@ -8,8 +8,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-package org.glassfish.jersey.examples.helloworld.netty;
+package com.example;
 
+import com.example.resource.HelloWorldResource;
 import io.netty.channel.Channel;
 import org.glassfish.jersey.netty.httpserver.NettyHttpContainerProvider;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -36,12 +37,11 @@ public class App {
 
             Runtime.getRuntime().addShutdownHook(new Thread(server::close));
 
-            System.out.printf("Application started. (HTTP/2 enabled!)\nTry out %s%s\nStop the application using "
-                    + "CTRL+C.%n", BASE_URI, ROOT_PATH);
+            System.out.println(String.format("Application started. (HTTP/2 enabled!)\nTry out %s%s\nStop the application using "
+                    + "CTRL+C.", BASE_URI, ROOT_PATH));
             Thread.currentThread().join();
         } catch (InterruptedException ex) {
             Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 }

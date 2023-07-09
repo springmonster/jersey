@@ -16,6 +16,19 @@
 
 package org.glassfish.jersey.netty.connector;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.*;
+import io.netty.handler.timeout.IdleStateEvent;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.ClientRequest;
+import org.glassfish.jersey.client.ClientResponse;
+import org.glassfish.jersey.netty.connector.internal.NettyInputStream;
+import org.glassfish.jersey.netty.connector.internal.RedirectException;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -23,27 +36,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.ClientRequest;
-import org.glassfish.jersey.client.ClientResponse;
-import org.glassfish.jersey.netty.connector.internal.NettyInputStream;
-import org.glassfish.jersey.netty.connector.internal.RedirectException;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.timeout.IdleStateEvent;
 
 /**
  * Jersey implementation of Netty channel handler.
@@ -82,60 +74,60 @@ class JerseyClientHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
-       notifyResponse();
+        notifyResponse();
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-       // assert: no-op, if channel is closed after LastHttpContent has been consumed
+        // assert: no-op, if channel is closed after LastHttpContent has been consumed
 
-       if (readTimedOut) {
-          responseDone.completeExceptionally(new TimeoutException("Stream closed: read timeout"));
-       } else {
-          responseDone.completeExceptionally(new IOException("Stream closed"));
-       }
+        if (readTimedOut) {
+            responseDone.completeExceptionally(new TimeoutException("Stream closed: read timeout"));
+        } else {
+            responseDone.completeExceptionally(new IOException("Stream closed"));
+        }
     }
 
     protected void notifyResponse() {
-       if (jerseyResponse != null) {
-          ClientResponse cr = jerseyResponse;
-          jerseyResponse = null;
-          int responseStatus = cr.getStatus();
-          if (followRedirects
-                  && (responseStatus == HttpResponseStatus.MOVED_PERMANENTLY.code()
-                          || responseStatus == HttpResponseStatus.FOUND.code()
-                          || responseStatus == HttpResponseStatus.SEE_OTHER.code()
-                          || responseStatus == HttpResponseStatus.TEMPORARY_REDIRECT.code()
-                          || responseStatus == HttpResponseStatus.PERMANENT_REDIRECT.code())) {
-              String location = cr.getHeaderString(HttpHeaders.LOCATION);
-              if (location == null || location.isEmpty()) {
-                  responseAvailable.completeExceptionally(new RedirectException(LocalizationMessages.REDIRECT_NO_LOCATION()));
-              } else {
-                  try {
-                      URI newUri = URI.create(location);
-                      boolean alreadyRequested = !redirectUriHistory.add(newUri);
-                      if (alreadyRequested) {
-                          // infinite loop detection
-                          responseAvailable.completeExceptionally(
-                                  new RedirectException(LocalizationMessages.REDIRECT_INFINITE_LOOP()));
-                      } else if (redirectUriHistory.size() > maxRedirects) {
-                          // maximal number of redirection
-                          responseAvailable.completeExceptionally(
-                                  new RedirectException(LocalizationMessages.REDIRECT_LIMIT_REACHED(maxRedirects)));
-                      } else {
-                          ClientRequest newReq = new ClientRequest(jerseyRequest);
-                          newReq.setUri(newUri);
-                          connector.execute(newReq, redirectUriHistory, responseAvailable);
-                      }
-                  } catch (IllegalArgumentException e) {
-                      responseAvailable.completeExceptionally(
-                              new RedirectException(LocalizationMessages.REDIRECT_ERROR_DETERMINING_LOCATION(location)));
-                  }
-              }
-          } else {
-              responseAvailable.complete(cr);
-          }
-       }
+        if (jerseyResponse != null) {
+            ClientResponse cr = jerseyResponse;
+            jerseyResponse = null;
+            int responseStatus = cr.getStatus();
+            if (followRedirects
+                    && (responseStatus == HttpResponseStatus.MOVED_PERMANENTLY.code()
+                    || responseStatus == HttpResponseStatus.FOUND.code()
+                    || responseStatus == HttpResponseStatus.SEE_OTHER.code()
+                    || responseStatus == HttpResponseStatus.TEMPORARY_REDIRECT.code()
+                    || responseStatus == HttpResponseStatus.PERMANENT_REDIRECT.code())) {
+                String location = cr.getHeaderString(HttpHeaders.LOCATION);
+                if (location == null || location.isEmpty()) {
+                    responseAvailable.completeExceptionally(new RedirectException(LocalizationMessages.REDIRECT_NO_LOCATION()));
+                } else {
+                    try {
+                        URI newUri = URI.create(location);
+                        boolean alreadyRequested = !redirectUriHistory.add(newUri);
+                        if (alreadyRequested) {
+                            // infinite loop detection
+                            responseAvailable.completeExceptionally(
+                                    new RedirectException(LocalizationMessages.REDIRECT_INFINITE_LOOP()));
+                        } else if (redirectUriHistory.size() > maxRedirects) {
+                            // maximal number of redirection
+                            responseAvailable.completeExceptionally(
+                                    new RedirectException(LocalizationMessages.REDIRECT_LIMIT_REACHED(maxRedirects)));
+                        } else {
+                            ClientRequest newReq = new ClientRequest(jerseyRequest);
+                            newReq.setUri(newUri);
+                            connector.execute(newReq, redirectUriHistory, responseAvailable);
+                        }
+                    } catch (IllegalArgumentException e) {
+                        responseAvailable.completeExceptionally(
+                                new RedirectException(LocalizationMessages.REDIRECT_ERROR_DETERMINING_LOCATION(location)));
+                    }
+                }
+            } else {
+                responseAvailable.complete(cr);
+            }
+        }
     }
 
     @Override
@@ -202,7 +194,6 @@ class JerseyClientHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
 
-
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, final Throwable cause) {
         responseDone.completeExceptionally(cause);
@@ -210,11 +201,11 @@ class JerseyClientHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-       if (evt instanceof IdleStateEvent) {
-          readTimedOut = true;
-          ctx.close();
-       } else {
-           super.userEventTriggered(ctx, evt);
-       }
+        if (evt instanceof IdleStateEvent) {
+            readTimedOut = true;
+            ctx.close();
+        } else {
+            super.userEventTriggered(ctx, evt);
+        }
     }
 }

@@ -29,7 +29,7 @@ public class SecurityEntityFilteringApplication extends ResourceConfig {
         // Register all resources present under the package.
         packages("org.glassfish.jersey.examples.entityfiltering.security");
 
-        // Register entity-filtering security feature.
+        // Register entity-fi   ltering security feature.
         register(SecurityEntityFilteringFeature.class);
 
         // Configure MOXy Json provider. Comment this line to use Jackson. Uncomment to use MOXy.
