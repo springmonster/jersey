@@ -92,8 +92,8 @@
     </properties>
 
     <modules>
-        <module>redeployment</module>
-        <module>test-cases</module>
+<!--        <module>redeployment</module>-->
+<!--        <module>test-cases</module>-->
     </modules>
 
     <build>

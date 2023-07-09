@@ -1,0 +1,22 @@
+### Register
+POST http://localhost:8081/user/register
+Content-Type: application/json
+
+{
+  "userName": "james",
+  "password": "james123"
+}
+
+<> 2023-07-09T105402.200.json
+
+### login
+POST http://localhost:8081/user/login
+Content-Type: application/json
+
+<> 2023-07-09T104109.200.txt
+<> 2023-07-09T104006.200.txt
+
+### Helloworld
+GET http://localhost:8081/helloworld
+
+<> 2023-07-09T103759.200.txt

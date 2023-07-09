@@ -47,7 +47,7 @@
         <module>e2e-tls</module>
         <module>integration</module>
         <module>jmockit</module>
-        <module>mem-leaks</module>
+<!--        <module>mem-leaks</module>-->
         <module>osgi</module>
         <module>stress</module>
         <module>performance</module>

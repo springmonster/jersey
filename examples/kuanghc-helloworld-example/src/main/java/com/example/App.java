@@ -11,6 +11,7 @@
 package com.example;
 
 import com.example.resource.HelloWorldResource;
+import com.example.resource.UserResource;
 import io.netty.channel.Channel;
 import org.glassfish.jersey.netty.httpserver.NettyHttpContainerProvider;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -32,7 +33,8 @@ public class App {
         try {
             System.out.println("\"Hello World\" Jersey Example App on Netty container.");
 
-            ResourceConfig resourceConfig = new ResourceConfig(HelloWorldResource.class);
+            ResourceConfig resourceConfig = new ResourceConfig(HelloWorldResource.class,
+                    UserResource.class);
             final Channel server = NettyHttpContainerProvider.createHttp2Server(BASE_URI, resourceConfig, null);
 
             Runtime.getRuntime().addShutdownHook(new Thread(server::close));
