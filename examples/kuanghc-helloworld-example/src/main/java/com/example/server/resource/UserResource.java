@@ -1,7 +1,7 @@
-package com.example.resource;
+package com.example.server.resource;
 
-import com.example.data.User;
-import com.example.vo.UserVo;
+import com.example.server.data.User;
+import com.example.server.http.vo.UserVo;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;

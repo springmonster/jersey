@@ -8,10 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-package com.example;
+package com.example.server.http;
 
-import com.example.resource.HelloWorldResource;
-import com.example.resource.UserResource;
 import io.netty.channel.Channel;
 import org.glassfish.jersey.netty.httpserver.NettyHttpContainerProvider;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -23,7 +21,7 @@ import java.util.logging.Logger;
 /**
  * Hello world!
  */
-public class App {
+public class NettyHttpServer {
 
     static final String ROOT_PATH = "helloworld";
 
@@ -33,8 +31,7 @@ public class App {
         try {
             System.out.println("\"Hello World\" Jersey Example App on Netty container.");
 
-            ResourceConfig resourceConfig = new ResourceConfig(HelloWorldResource.class,
-                    UserResource.class);
+            ResourceConfig resourceConfig = new ResourceConfig().packages("com.example.server");
             final Channel server = NettyHttpContainerProvider.createHttp2Server(BASE_URI, resourceConfig, null);
 
             Runtime.getRuntime().addShutdownHook(new Thread(server::close));
@@ -43,7 +40,7 @@ public class App {
                     + "CTRL+C.", BASE_URI, ROOT_PATH));
             Thread.currentThread().join();
         } catch (InterruptedException ex) {
-            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(NettyHttpServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

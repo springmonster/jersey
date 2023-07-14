@@ -1,4 +1,4 @@
-package com.example.vo;
+package com.example.server.http.vo;
 
 public class UserVo {
     private String userName;

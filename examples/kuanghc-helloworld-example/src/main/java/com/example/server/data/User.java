@@ -1,4 +1,4 @@
-package com.example.data;
+package com.example.server.data;
 
 public class User {
 

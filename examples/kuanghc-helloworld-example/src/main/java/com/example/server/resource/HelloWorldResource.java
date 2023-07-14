@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-package com.example.resource;
+package com.example.server.resource;
 
 import javax.ws.rs.*;
 
